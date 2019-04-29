@@ -7,7 +7,7 @@ from conans import ConanFile, CMake, tools
 
 class LibwebsocketsConan(ConanFile):
     name = "libwebsockets"
-    version = "2.4.0"
+    version = "3.1.0"
     description = "Canonical libwebsockets.org websocket library"
     url = "https://github.com/bincrafters/conan-libwebsockets"
     homepage = "https://github.com/warmcat/libwebsockets"
@@ -24,11 +24,11 @@ class LibwebsocketsConan(ConanFile):
         "lws_with_ssl": [True, False]
     }
     default_options = {
-        'shared': True,
-        'lws_with_libuv': False,
+        'shared': False,
+        'lws_with_libuv': True,
         'lws_with_libevent': False,
-        'lws_with_zlib': False,
-        'lws_with_ssl': False
+        'lws_with_zlib': True,
+        'lws_with_ssl': True
     }
 
     _source_subfolder = "source_subfolder"
@@ -39,20 +39,26 @@ class LibwebsocketsConan(ConanFile):
 
     def requirements(self):
         if self.options.lws_with_libuv:
-            self.requires.add("libuv/1.15.0@bincrafters/stable")
+            self.requires.add("libuv/1.27.0@aphrodite/testing")
         if self.options.lws_with_libevent:
             self.requires.add("libevent/2.1.8@bincrafters/stable")
         if self.options.lws_with_zlib:
-            self.requires.add("zlib/>=1.2.11@conan/stable")
+            self.requires.add("zlib/1.2.11@conan/stable")
         if self.options.lws_with_ssl:
-            self.requires.add("OpenSSL/>=1.0.2r@conan/stable")
+            self.requires.add("OpenSSL/1.0.2r@conan/stable")
 
     def source(self):
-        tools.get("{0}/archive/v{1}.tar.gz".format(self.homepage, self.version))
-        extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir, self._source_subfolder)
+        #tools.get("{0}/archive/v{1}.tar.gz".format(self.homepage, self.version))
+        #extracted_dir = self.name + "-" + self.version
+        #os.rename(extracted_dir, self._source_subfolder)
+        source_url = "https://github.com/warmcat/libwebsockets.git"
+        git = tools.Git(folder=self._source_subfolder)
+        git.clone(source_url, "master")
 
     def build(self):
+        # git pull
+        self.run("cd {0} && git pull".format(self._source_subfolder))
+
         cmake = CMake(self)
         cmake.definitions["LWS_WITHOUT_TESTAPPS"] = True
         cmake.definitions["LWS_LINK_TESTAPPS_DYNAMIC"] = True
@@ -62,6 +68,7 @@ class LibwebsocketsConan(ConanFile):
         cmake.definitions["LWS_WITH_LIBUV"] = self.options.lws_with_libuv
         cmake.definitions["LWS_WITH_LIBEVENT"] = self.options.lws_with_libevent
         cmake.definitions["LWS_WITH_ZLIB"] = self.options.lws_with_zlib
+        cmake.definitions["LWS_WITH_HTTP_STREAM_COMPRESSION"] = True
         if not self.options.lws_with_zlib:
             cmake.definitions["LWS_WITHOUT_EXTENSIONS"] = True
             cmake.definitions["LWS_WITH_ZIP_FOPS"] = False
