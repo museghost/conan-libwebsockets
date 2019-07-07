@@ -7,7 +7,7 @@ from conans import ConanFile, CMake, tools
 
 class LibwebsocketsConan(ConanFile):
     name = "libwebsockets"
-    version = "3.1.0"
+    version = "3.1.1"
     description = "Canonical libwebsockets.org websocket library"
     url = "https://github.com/bincrafters/conan-libwebsockets"
     homepage = "https://github.com/warmcat/libwebsockets"
